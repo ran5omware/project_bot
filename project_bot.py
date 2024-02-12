@@ -1,6 +1,7 @@
 # Импорт всех библиотек
 import os
 import disnake
+import sqlite3
 from dotenv import load_dotenv
 from random import choice
 from disnake.ext import commands
@@ -9,16 +10,33 @@ from disnake import ApplicationCommandInteraction
 # Загружаем переменную окружения(наш токен)
 load_dotenv()
 
+db = sqlite3.connect('level.db')
+sql = db.cursor()
+db.commit()
+
 # Создаем бота
 bot = commands.Bot(command_prefix="/", help_command=None, intents=disnake.Intents.all())
 
 
 # Тут будут все команды:
 
-# Создаем событие запуска бота, в котором в консоль выведется сообщение о том, что бот готов к работе
+# Создаем событие запуска бота и запуск базы данных, в котором
+#   в консоль выведется сообщение о том, что бот и база данных готовы к работе
 @bot.event
 async def on_ready():
-    print(f"Bot {bot.user} is ready to work!")
+    try:
+        sql.execute("""CREATE TABLE IF NOT EXISTS users (
+                name TEXT,
+                id INT,
+                exp BIGINT,
+                level INT
+            )""")
+    except:
+        print('Возникла ошибка во время запуска базы данных')
+    finally:
+        print(f"Bot {bot.user} is ready to work!")
+        db.commit()
+        print('client connected')
 
 
 # Игровая команда "Орел и решка"

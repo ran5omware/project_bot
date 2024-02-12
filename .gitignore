@@ -1,1 +1,4 @@
 .env
+level.db
+.idea
+workspace.xml
