@@ -14,12 +14,6 @@ db = sqlite3.connect('level.db')
 sql = db.cursor()
 db.commit()
 
-# level_limit = dict[
-#     0: 0,
-#     1: 50,
-#     2: 150
-# ]
-
 # Создаем бота
 bot = commands.Bot(command_prefix="/", help_command=None, intents=disnake.Intents.all())
 
