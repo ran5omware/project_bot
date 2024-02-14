@@ -70,6 +70,23 @@ async def on_message(message):
         await message.channel.send(f"Поздравляю, {message.author.mention}, ваш уровень повышен до {cur_lvl + 1}")
 
 
+# Команда для просмотра уровня
+@bot.slash_command(description='Посмотреть уровень')
+async def level_check(ctx, member: disnake.Member):
+    try:
+        level = sql.execute("SELECT level FROM users WHERE id = {}".format(member.id)).fetchone()[0]
+        # exp = sql.execute("SELECT exp FROM users WHERE id = {}".format(member.id)).fetchone()[0]
+        embed = disnake.Embed(
+            title=f'{member}',
+            description=f'**{level} уровень**',
+            color=disnake.Colour.yellow(),
+        )
+        # embed.add_field(name='', value=f'*{exp} exp*')
+        await ctx.send(embed=embed)
+    except:
+        await ctx.send('Невозможно посмотреть уровень у бота')
+
+
 # Игровая команда "Орел и решка"
 @bot.slash_command(description="Сыграть в монеточку")
 async def coin(ctx, side: str = commands.Param(choices=["орел", "решка"])):
