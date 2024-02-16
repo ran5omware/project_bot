@@ -8,7 +8,6 @@ from random import choice
 from disnake.ext import commands
 from pyrogram import Client, types
 from disnake import ApplicationCommandInteraction
-from pyrogram.handlers import MessageHandler
 
 # Загружаем переменную окружения(наш токен)
 load_dotenv()
@@ -127,7 +126,7 @@ async def coin(ctx, side: str = commands.Param(choices=["орел", "решка"
 
 
 @bot.slash_command(description='Расписание')
-async def table(inter: ApplicationCommandInteraction, date: str = commands.Param(choices=["Завтра", "Текущая неделя", "Следующая неделя"])):
+async def table(inter: ApplicationCommandInteraction, date: str = commands.Param(choices=["Сегодня", "Завтра", "Текущая неделя", "Следующая неделя"])):
     await inter.response.send_message("Please wait...")
 
     api_id = os.getenv('api_id')
