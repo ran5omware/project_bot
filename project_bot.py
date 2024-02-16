@@ -1,11 +1,14 @@
 # Импорт всех библиотек
 import os
+import time
 import disnake
 import sqlite3
 from dotenv import load_dotenv
 from random import choice
 from disnake.ext import commands
+from pyrogram import Client, types
 from disnake import ApplicationCommandInteraction
+from pyrogram.handlers import MessageHandler
 
 # Загружаем переменную окружения(наш токен)
 load_dotenv()
@@ -121,6 +124,23 @@ async def coin(ctx, side: str = commands.Param(choices=["орел", "решка"
         )
         embed.set_image(url="https://i.ibb.co/tZq8GQ5/image.png")
         await ctx.send(embed=embed)
+
+
+@bot.slash_command(description='Расписание')
+async def table(inter: ApplicationCommandInteraction, date: str = commands.Param(choices=["Завтра", "Текущая неделя", "Следующая неделя"])):
+    await inter.response.send_message("Please wait...")
+
+    api_id = os.getenv('api_id')
+    api_hash = os.getenv('api_hash')
+
+    app = Client('me_client', api_id, api_hash)
+
+    await app.start()
+    await app.send_message('mirea_table_bot', date)
+    time.sleep(1)
+    async for message in app.get_chat_history('mirea_table_bot', 1):
+        await inter.edit_original_message(message.text)
+    await app.stop()
 
 
 # Запуск бота
