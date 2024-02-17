@@ -6,7 +6,7 @@ import sqlite3
 from dotenv import load_dotenv
 from random import choice
 from disnake.ext import commands
-from pyrogram import Client, types
+from pyrogram import Client
 from disnake import ApplicationCommandInteraction
 
 # Загружаем переменную окружения(наш токен)
@@ -165,17 +165,14 @@ async def add_dolg(interaction: disnake.ApplicationCommandInteraction, name: dis
 
 @bot.slash_command(description='Удалить долг')
 async def delete_dolg(interaction: disnake.ApplicationCommandInteraction, name: disnake.Member, subject: str):
-    flag = False
     for subjects in sql_d.execute(f"SELECT subjects FROM dolgi WHERE name = ?", (str(name),)).fetchone():
         if subject in subjects:
-            flag = True
-    if flag:
-        sql_d.execute(f"SELECT subjects FROM dolgi WHERE name = ?", (str(name),))
-        subjects = sql_d.fetchone()[0]
-        subjects = subjects.replace(' ' + subject, '')
-        sql_d.execute(f"UPDATE dolgi SET subjects = ? WHERE name = ?", (subjects, str(name)))
-        await interaction.response.send_message("Удалил!")
-        dolgi.commit()
+            sql_d.execute(f"SELECT subjects FROM dolgi WHERE name = ?", (str(name),))
+            subjects = sql_d.fetchone()[0]
+            subjects = subjects.replace(' ' + subject, '')
+            sql_d.execute(f"UPDATE dolgi SET subjects = ? WHERE name = ?", (subjects, str(name)))
+            await interaction.response.send_message("Удалил!")
+            dolgi.commit()
     else:
         await interaction.response.send_message("Долг не найден")
 
