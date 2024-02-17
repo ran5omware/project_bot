@@ -16,6 +16,10 @@ db = sqlite3.connect('level.db')
 sql = db.cursor()
 db.commit()
 
+dolgi = sqlite3.connect('dolgi.db')
+sql_d = dolgi.cursor()
+dolgi.commit()
+
 # Создаем бота
 bot = commands.Bot(command_prefix="/", help_command=None, intents=disnake.Intents.all())
 
@@ -33,6 +37,11 @@ async def on_ready():
                 exp BIGINT,
                 level INT
             )""")
+        sql_d.execute("""CREATE TABLE IF NOT EXISTS dolgi (
+                name TEXT,
+                id INT,
+                subjects TEXT
+            )""")
     except:
         print('Возникла ошибка во время запуска базы данных')
     finally:
@@ -43,12 +52,15 @@ async def on_ready():
                 if member.bot:
                     pass
                 else:
+                    if sql_d.execute(f"SELECT id FROM dolgi WHERE id = {member.id}").fetchone() is None:
+                        sql_d.execute(f"INSERT INTO dolgi VALUES ('{member}', {member.id}, '')")
                     if sql.execute(f"SELECT id FROM users WHERE id = {member.id}").fetchone() is None:
                         sql.execute(f"INSERT INTO users VALUES ('{member}', {member.id}, 0, 1)")
                     else:
                         pass
 
         db.commit()
+        dolgi.commit()
         print('client connected')
 
 
@@ -140,6 +152,44 @@ async def table(inter: ApplicationCommandInteraction, date: str = commands.Param
     async for message in app.get_chat_history('mirea_table_bot', 1):
         await inter.edit_original_message(message.text)
     await app.stop()
+
+
+@bot.slash_command(description='Добавить долг')
+async def add_dolg(interaction: disnake.ApplicationCommandInteraction, name: disnake.Member, subject: str):
+    sql_d.execute(f"SELECT subjects FROM dolgi WHERE name = ?", (str(name),))
+    subject = sql_d.fetchone()[0] + ' ' + subject
+    sql_d.execute(f"UPDATE dolgi SET subjects = ? WHERE name = ?", (subject, str(name)))
+    await interaction.response.send_message("Добавил!")
+    dolgi.commit()
+
+
+@bot.slash_command(description='Удалить долг')
+async def delete_dolg(interaction: disnake.ApplicationCommandInteraction, name: disnake.Member, subject: str):
+    flag = False
+    for subjects in sql_d.execute(f"SELECT subjects FROM dolgi WHERE name = ?", (str(name),)).fetchone():
+        print(subjects)
+        print(subject)
+        if subject in subjects:
+            flag = True
+    if flag:
+        sql_d.execute(f"SELECT subjects FROM dolgi WHERE name = ?", (str(name),))
+        subjects = sql_d.fetchone()[0]
+        subjects = subjects.replace(' ' + subject, '')
+        sql_d.execute(f"UPDATE dolgi SET subjects = ? WHERE name = ?", (subjects, str(name)))
+        await interaction.response.send_message("Удалил!")
+        dolgi.commit()
+    else:
+        await interaction.response.send_message("Долг не найден")
+
+
+@bot.slash_command(description='Посмотреть долги')
+async def check_dolg(interaction: disnake.ApplicationCommandInteraction, name: disnake.Member):
+    sql_d.execute(f"SELECT subjects FROM dolgi WHERE name = ?", (str(name),))
+    subjects = sql_d.fetchone()[0]
+    if subjects:
+        await interaction.response.send_message(f"Долги пользователя {name}:\n{subjects}")
+    else:
+        await interaction.response.send_message("У пользователя отсутствуют долги")
 
 
 # Запуск бота
