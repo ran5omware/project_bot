@@ -167,8 +167,6 @@ async def add_dolg(interaction: disnake.ApplicationCommandInteraction, name: dis
 async def delete_dolg(interaction: disnake.ApplicationCommandInteraction, name: disnake.Member, subject: str):
     flag = False
     for subjects in sql_d.execute(f"SELECT subjects FROM dolgi WHERE name = ?", (str(name),)).fetchone():
-        print(subjects)
-        print(subject)
         if subject in subjects:
             flag = True
     if flag:
