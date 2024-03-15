@@ -23,4 +23,5 @@
 - yarl==1.9.4
 
 
-Команда для запуска бота - python setup.py sdist
+Команда для установки - python setup.py sdist
+Команда для запуска бота - python src/bot
