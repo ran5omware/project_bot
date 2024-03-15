@@ -30,6 +30,11 @@ bot = commands.Bot(command_prefix="/", help_command=None, intents=disnake.Intent
 #   в консоль выведется сообщение о том, что бот и база данных готовы к работе
 @bot.event
 async def on_ready():
+    """Ивент запуска бота.
+
+        Во время запуска загружаются базы данных и
+        Таблицы заполняются всеми пользователями сервера.
+    """
     try:
         sql.execute("""CREATE TABLE IF NOT EXISTS users (
                 name TEXT,
@@ -42,7 +47,7 @@ async def on_ready():
                 id INT,
                 subjects TEXT
             )""")
-    except:
+    except sqlite3.ProgrammingError:
         print('Возникла ошибка во время запуска базы данных')
     finally:
         print(f"Bot {bot.user} is ready to work!")
@@ -66,6 +71,13 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
+    """Ивент на сообщения.
+
+    При написании пользователем любого сообщения(кроме слеш-команд)
+    Ему будет даваться 10 опыта, в какой-то момент,
+    По достижению пользователем порога уровня,
+    Его уровень будет увеличен.
+    """
     if message.author.bot:
         return
     sql.execute("UPDATE users SET exp = exp + 10 WHERE id = {}".format(message.author.id))
@@ -81,6 +93,12 @@ async def on_message(message):
 # Команда для просмотра уровня
 @bot.slash_command(description='Посмотреть уровень')
 async def level_check(ctx, member: disnake.Member):
+    """Команда для просмотра уровня.
+
+    В базе данных участников сервера ищется отмеченный
+    пользователь, и бот выводит в чат никнейм
+    этого пользователя и его уровень.
+    """
     try:
         level = sql.execute("SELECT level FROM users WHERE id = {}".format(member.id)).fetchone()[0]
         # exp = sql.execute("SELECT exp FROM users WHERE id = {}".format(member.id)).fetchone()[0]
@@ -95,9 +113,16 @@ async def level_check(ctx, member: disnake.Member):
         await ctx.send('Невозможно посмотреть уровень у бота')
 
 
-# Игровая команда "Орел и решка"
+#
 @bot.slash_command(description="Сыграть в монеточку")
 async def coin(ctx, side: str = commands.Param(choices=["орел", "решка"])):
+    """Команда монеточка.
+
+    В этой команде мы принимаем параметр side и,
+    с помощью рандома, выбираем ответ бота, если
+    ответ бота совпал с выбранной стороной, то
+    пользователь выигрывает, иначе проигрывает.
+    """
     sides = ['орел', 'решка']
     botChoice = choice(sides)
     if botChoice == side and side == 'орел':
@@ -139,6 +164,13 @@ async def coin(ctx, side: str = commands.Param(choices=["орел", "решка"
 
 @bot.slash_command(description='Расписание')
 async def table(inter: ApplicationCommandInteraction, date: str = commands.Param(choices=["Сегодня", "Завтра", "Текущая неделя", "Следующая неделя"])):
+    """Команда для получения расписания.
+
+        По команде бот будет запускать телеграм-бота,
+        Который в свою очередь пишет боту с расписанием
+        И, копируя сообщение с расписанием, отправляет
+        Его в ответ на команду.
+    """
     await inter.response.send_message("Please wait...")
 
     api_id = os.getenv('api_id')
@@ -156,6 +188,11 @@ async def table(inter: ApplicationCommandInteraction, date: str = commands.Param
 
 @bot.slash_command(description='Добавить долг')
 async def add_dolg(interaction: disnake.ApplicationCommandInteraction, name: disnake.Member, subject: str):
+    """Команда для добавления долга.
+
+        Бот добавляет в базу данных пользователей долг,
+        Который указал пользователь.
+    """
     sql_d.execute(f"SELECT subjects FROM dolgi WHERE name = ?", (str(name),))
     subject = sql_d.fetchone()[0] + ' ' + subject
     sql_d.execute(f"UPDATE dolgi SET subjects = ? WHERE name = ?", (subject, str(name)))
@@ -165,6 +202,11 @@ async def add_dolg(interaction: disnake.ApplicationCommandInteraction, name: dis
 
 @bot.slash_command(description='Удалить долг')
 async def delete_dolg(interaction: disnake.ApplicationCommandInteraction, name: disnake.Member, subject: str):
+    """Команда для добавления долга.
+
+        Бот удаляет из базы данных пользователей долг,
+        Который указал пользователь.
+    """
     for subjects in sql_d.execute(f"SELECT subjects FROM dolgi WHERE name = ?", (str(name),)).fetchone():
         if subject in subjects:
             sql_d.execute(f"SELECT subjects FROM dolgi WHERE name = ?", (str(name),))
@@ -179,6 +221,11 @@ async def delete_dolg(interaction: disnake.ApplicationCommandInteraction, name: 
 
 @bot.slash_command(description='Посмотреть долги')
 async def check_dolg(interaction: disnake.ApplicationCommandInteraction, name: disnake.Member):
+    """Команда для добавления долга.
+
+        Бот показывает все долги выбранного пользователя,
+        Которые он получает из базы данных.
+    """
     sql_d.execute(f"SELECT subjects FROM dolgi WHERE name = ?", (str(name),))
     subjects = sql_d.fetchone()[0]
     if subjects:
