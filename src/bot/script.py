@@ -11,6 +11,7 @@ from disnake import ApplicationCommandInteraction
 
 # Загружаем переменную окружения(наш токен)
 load_dotenv()
+TOKEN = os.getenv("TOKEN")
 
 db = sqlite3.connect('level.db')
 sql = db.cursor()
@@ -232,7 +233,3 @@ async def check_dolg(interaction: disnake.ApplicationCommandInteraction, name: d
         await interaction.response.send_message(f"Долги пользователя {name}:\n{subjects}")
     else:
         await interaction.response.send_message("У пользователя отсутствуют долги")
-
-
-# Запуск бота
-bot.run(os.getenv('TOKEN'))
