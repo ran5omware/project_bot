@@ -17,11 +17,12 @@ setup(
         'frozenlist==1.4.1',
         'idna==3.6',
         'multidict==6.0.5',
-       ' pyaes==1.6.1',
+        'pyaes==1.6.1',
         'Pyrogram==2.0.106',
         'PySocks==1.7.1',
         'python-dotenv==1.0.1',
-        'yarl==1.9.4'
+        'yarl==1.9.4',
+        'sphinx'
     ],
     author="ran5omware",
     author_email="",
